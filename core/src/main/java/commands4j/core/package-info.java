@@ -14,19 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Commands4J.  If not, see <http://www.gnu.org/licenses/>.
  */
-allprojects {
-    group 'com.github.commands4j'
-    version '2.0.0-SNAPSHOT'
+@NonNullApi
+package commands4j.core;
 
-    apply plugin: 'java-library'
-
-    repositories {
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = "4.7"
-    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
-}
+import reactor.util.annotation.NonNullApi;
