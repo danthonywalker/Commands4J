@@ -18,7 +18,7 @@ package commands4j.core;
 
 import commands4j.core.config.ArgumentFactory;
 import commands4j.core.config.CommandExecutor;
-import commands4j.core.config.CommandLimiter;
+import commands4j.core.config.CommandFilter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -31,7 +31,7 @@ public final class CommandBuilder {
 
     private String name;
     private CommandExecutor executor;
-    private Set<CommandLimiter> limiters;
+    private Set<CommandFilter> filters;
     @Nullable private ArgumentFactory argumentFactory;
     private Set<String> parentCommandNames;
     private Set<String> subCommandNames;
@@ -39,7 +39,7 @@ public final class CommandBuilder {
     public CommandBuilder(final Command command) {
         name = command.getName();
         executor = command.getExecutor();
-        limiters = command.getLimiters();
+        filters = command.getFilters();
         argumentFactory = command.getArgumentFactory().orElse(null);
         parentCommandNames = command.getParentCommandNames();
         subCommandNames = command.getSubCommandNames();
@@ -48,7 +48,7 @@ public final class CommandBuilder {
     public CommandBuilder(final String name, final CommandExecutor executor) {
         this.name = name;
         this.executor = executor;
-        limiters = Collections.emptySet();
+        filters = Collections.emptySet();
         argumentFactory = null;
         parentCommandNames = Collections.emptySet();
         subCommandNames = Collections.emptySet();
@@ -72,17 +72,17 @@ public final class CommandBuilder {
         return this;
     }
 
-    public Set<CommandLimiter> getLimiters() {
-        return Collections.unmodifiableSet(limiters);
+    public Set<CommandFilter> getFilters() {
+        return Collections.unmodifiableSet(filters);
     }
 
-    public CommandBuilder setLimiters(final Iterable<? extends CommandLimiter> limiters) {
-        this.limiters = StreamSupport.stream(limiters.spliterator(), false).collect(Collectors.toSet());
+    public CommandBuilder setFilters(final Iterable<? extends CommandFilter> filters) {
+        this.filters = StreamSupport.stream(filters.spliterator(), false).collect(Collectors.toSet());
         return this;
     }
 
-    public CommandBuilder setLimiters(final CommandLimiter...limiters) {
-        return setLimiters(Arrays.asList(limiters));
+    public CommandBuilder setFilters(final CommandFilter...filters) {
+        return setFilters(Arrays.asList(filters));
     }
 
     public Optional<ArgumentFactory> getArgumentFactory() {
@@ -121,6 +121,6 @@ public final class CommandBuilder {
     }
 
     public Command build() {
-        return new Command(name, executor, limiters, argumentFactory, parentCommandNames, subCommandNames);
+        return new Command(name, executor, filters, argumentFactory, parentCommandNames, subCommandNames);
     }
 }

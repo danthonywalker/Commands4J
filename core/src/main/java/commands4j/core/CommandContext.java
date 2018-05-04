@@ -19,6 +19,7 @@ package commands4j.core;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class CommandContext {
 
@@ -26,14 +27,16 @@ public final class CommandContext {
     private final String argument;
     private final List<String> arguments;
     private final MessageCreateEvent event;
+    private final AtomicReference<Object> state;
 
     CommandContext(final Command command, final String argument, final List<String> arguments,
-                   final MessageCreateEvent event) {
+                   final MessageCreateEvent event, final AtomicReference<Object> state) {
 
         this.command = command;
         this.argument = argument;
         this.arguments = arguments;
         this.event = event;
+        this.state = state;
     }
 
     public Command getCommand() {
@@ -50,5 +53,10 @@ public final class CommandContext {
 
     public MessageCreateEvent getEvent() {
         return event;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> AtomicReference<T> getState() {
+        return (AtomicReference<T>) state;
     }
 }

@@ -16,8 +16,7 @@
  */
 package commands4j.core;
 
-import commands4j.core.config.CommandLimiter;
-import commands4j.core.config.CommandRestrictor;
+import commands4j.core.config.CommandFilter;
 import discord4j.core.event.EventDispatcher;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import java.util.Collections;
@@ -25,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
@@ -110,29 +110,27 @@ public final class CommandRegistry {
         return addedCommand;
     }
 
-    private Flux<Boolean> apply(final MessageCreateEvent t) {
+    private Flux<Void> apply(final MessageCreateEvent t) {
         return Flux.fromIterable(mainCommands)
             .flatMap(command -> command.getArgumentFactory()
                 .orElseThrow(IllegalStateException::new)
                 .getArguments(command, t)
                 .filter(arguments -> !arguments.isEmpty())
-                // The command can potentially be executed from the first argument it created for itself
-                .map(args -> new CommandContext(command, args.get(0), args.subList(1, args.size()), t)))
+                .map(args -> new CommandContext(command, args.get(0), args.subList(1, args.size()), t,
+                    new AtomicReference<>()))) // Executed on the first argument it created for itself
             .flatMap(this::apply);
     }
 
-    private Mono<Boolean> apply(final CommandContext t) {
-        return Flux.fromIterable(t.getCommand().getLimiters())
-            .filterWhen(commandLimiter -> commandLimiter.shouldLimit(t))
-            // If no CommandLimiters return true, execute, then cast safely on the empty Mono
-            .switchIfEmpty(t.getCommand().getExecutor().execute(t).cast(CommandLimiter.class))
-            .any(CommandRestrictor.class::isInstance)
-            .filter(restrictor -> restrictor)
-            .switchIfEmpty(Flux.fromIterable(t.getCommand().getSubCommands())
+    private Mono<Void> apply(final CommandContext t) {
+        return Flux.fromIterable(t.getCommand().getFilters())
+            .filterWhen(commandFilter -> commandFilter.filter(t))
+            // If no CommandFilters return true, execute, then cast safely on the empty Mono
+            .switchIfEmpty(t.getCommand().getExecutor().execute(t).cast(CommandFilter.class))
+            .then(Flux.fromIterable(t.getCommand().getSubCommands())
                 .flatMap(command -> Mono.just(t.getArguments())
                     .filter(arguments -> !arguments.isEmpty())
-                    // SubCommands (if there are any) are potentially executed on the next argument (if it also exists)
-                    .map(args -> new CommandContext(command, args.get(0), args.subList(1, args.size()), t.getEvent())))
+                    .map(args -> new CommandContext(command, args.get(0), args.subList(1, args.size()), t.getEvent(),
+                        t.getState()))) // SubCommands are potentially executed on the next argument (if it exists)
                 .flatMap(this::apply)
                 .ignoreElements());
     }

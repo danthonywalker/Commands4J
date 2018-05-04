@@ -18,7 +18,7 @@ package commands4j.core;
 
 import commands4j.core.config.ArgumentFactory;
 import commands4j.core.config.CommandExecutor;
-import commands4j.core.config.CommandLimiter;
+import commands4j.core.config.CommandFilter;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -29,20 +29,20 @@ public final class Command {
 
     private final String name;
     private final CommandExecutor executor;
-    private final Set<CommandLimiter> limiters;
+    private final Set<CommandFilter> filters;
     @Nullable private final ArgumentFactory argumentFactory;
     private final Set<String> parentCommandNames;
     private final Set<String> subCommandNames;
     private final Set<Command> parentCommands;
     private final Set<Command> subCommands;
 
-    Command(final String name, final CommandExecutor executor, final Set<CommandLimiter> limiters,
+    Command(final String name, final CommandExecutor executor, final Set<CommandFilter> filters,
             @Nullable final ArgumentFactory argumentFactory, final Set<String> parentCommandNames,
             final Set<String> subCommandNames) {
 
         this.name = name;
         this.executor = executor;
-        this.limiters = limiters;
+        this.filters = filters;
         this.argumentFactory = argumentFactory;
         this.parentCommandNames = parentCommandNames;
         this.subCommandNames = subCommandNames;
@@ -58,8 +58,8 @@ public final class Command {
         return executor;
     }
 
-    public Set<CommandLimiter> getLimiters() {
-        return Collections.unmodifiableSet(limiters);
+    public Set<CommandFilter> getFilters() {
+        return Collections.unmodifiableSet(filters);
     }
 
     public Optional<ArgumentFactory> getArgumentFactory() {

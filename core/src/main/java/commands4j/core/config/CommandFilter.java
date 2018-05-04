@@ -20,7 +20,7 @@ import commands4j.core.CommandContext;
 import reactor.core.publisher.Mono;
 
 @FunctionalInterface
-public interface CommandLimiter {
+public interface CommandFilter {
 
-    Mono<Boolean> shouldLimit(CommandContext commandContext);
+    Mono<Boolean> filter(CommandContext commandContext);
 }
